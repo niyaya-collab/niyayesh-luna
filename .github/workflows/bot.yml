@@ -3,7 +3,7 @@ name: Moon journal
 on:
   workflow_dispatch:
   schedule:
-    - cron: "0,20,40 * * * *"
+    - cron: "3,18,33,48 * * * *"
 
 permissions:
   contents: write
@@ -15,7 +15,7 @@ concurrency:
 jobs:
   run:
     runs-on: ubuntu-latest
-    timeout-minutes: 22
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
         with:
@@ -31,7 +31,7 @@ jobs:
           DATA_KEY: ${{ secrets.DATA_KEY }}
           HOME_USERNAME: ${{ secrets.HOME_USERNAME }}
           PARTNER_CHAT_ID: ${{ secrets.PARTNER_CHAT_ID }}
-          WATCH_SECONDS: "1140"
+          WATCH_SECONDS: "3600"
           AUTO_PUSH: "0"
         run: |
           git config user.name "github-actions[bot]"
@@ -42,12 +42,12 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git fetch origin main
+          git fetch origin main || true
           git pull --rebase origin main || true
           if [ -f data/state.enc ]; then
             git add -- data/state.enc
             if ! git diff --cached --quiet; then
-              git commit --trailer "Co-authored-by: Cursor <cursoragent@cursor.com>" -m "Update journal" || true
+              git commit -m "Update journal" || true
             fi
           fi
           git pull --rebase origin main || true
