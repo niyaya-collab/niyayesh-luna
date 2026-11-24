@@ -1,0 +1,58 @@
+﻿name: Moon journal
+
+on:
+  workflow_dispatch:
+  schedule:
+    # once every 6 hours — short wake, not always-on abuse
+    - cron: "17 */6 * * *"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: moon-journal
+  cancel-in-progress: true
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      - name: Catch up once
+        env:
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+          DATA_KEY: ${{ secrets.DATA_KEY }}
+          HOME_USERNAME: ${{ secrets.HOME_USERNAME }}
+          PARTNER_CHAT_ID: ${{ secrets.PARTNER_CHAT_ID }}
+          WATCH_SECONDS: "600"
+          AUTO_PUSH: "0"
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          node src/index.js
+
+      - name: Save the journal
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if [ -f data/state.enc ]; then
+            git add -- data/state.enc
+            if ! git diff --cached --quiet; then
+              git commit --trailer "Co-authored-by: Cursor <cursoragent@cursor.com>" -m "Update journal"
+            fi
+          fi
+          if [ "$(git rev-list --count origin/main..HEAD)" != "0" ]; then
+            git push origin HEAD:main
+          fi
