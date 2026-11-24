@@ -1,10 +1,9 @@
-﻿name: Moon journal
+name: Moon journal
 
 on:
   workflow_dispatch:
   schedule:
-    # once every 6 hours — short wake, not always-on abuse
-    - cron: "17 */6 * * *"
+    - cron: "12 */2 * * *"
 
 permissions:
   contents: write
@@ -21,27 +20,23 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-
       - uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
-
       - run: npm ci
-
       - name: Catch up once
         env:
           BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
           DATA_KEY: ${{ secrets.DATA_KEY }}
           HOME_USERNAME: ${{ secrets.HOME_USERNAME }}
           PARTNER_CHAT_ID: ${{ secrets.PARTNER_CHAT_ID }}
-          WATCH_SECONDS: "600"
+          WATCH_SECONDS: "720"
           AUTO_PUSH: "0"
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           node src/index.js
-
       - name: Save the journal
         if: always()
         run: |
