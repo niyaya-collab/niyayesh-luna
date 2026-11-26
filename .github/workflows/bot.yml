@@ -3,8 +3,10 @@ name: Moon journal
 on:
   workflow_dispatch:
   schedule:
-    - cron: "3,18,33,48 * * * *"
-    - cron: "10,25,40,55 * * * *"
+    # One wake each hour. The shift itself keeps listening for nearly three
+    # hours, so a late schedule does not put the bot to sleep. Nothing here
+    # starts another workflow.
+    - cron: "17 * * * *"
 
 permissions:
   contents: write
@@ -16,7 +18,7 @@ concurrency:
 jobs:
   run:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 170
     steps:
       - uses: actions/checkout@v4
         with:
@@ -32,7 +34,7 @@ jobs:
           DATA_KEY: ${{ secrets.DATA_KEY }}
           HOME_USERNAME: ${{ secrets.HOME_USERNAME }}
           PARTNER_CHAT_ID: ${{ secrets.PARTNER_CHAT_ID }}
-          WATCH_SECONDS: "3600"
+          WATCH_SECONDS: "9600"
           AUTO_PUSH: "1"
         run: |
           git config user.name "github-actions[bot]"
